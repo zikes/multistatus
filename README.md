@@ -1,4 +1,4 @@
-# multistatus
+# multistatus [![GoDoc](https://godoc.org/github.com/zikes/multistatus?status.svg)](https://godoc.org/github.com/zikes/multistatus)
 
 Use the terminal to show the status of multiple concurrent processes in Go.
 
