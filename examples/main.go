@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
+	"os/signal"
 	"time"
 
 	ms "git.zikes.me/multistatus"
@@ -26,6 +28,16 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for _ = range c {
+			cancel()
+			time.Sleep(10 * time.Millisecond)
+			os.Exit(0)
+		}
+	}()
 
 	ws.Print(ctx)
 }
