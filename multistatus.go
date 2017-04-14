@@ -1,6 +1,7 @@
 package multistatus
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -54,7 +55,7 @@ func (w *WorkerSet) Add(s string) *Worker {
 	return worker
 }
 
-func (w *WorkerSet) Print() {
+func (w *WorkerSet) Print(ctx context.Context) {
 	done := make(chan bool)
 	go func() {
 		w.wg.Wait()
@@ -64,6 +65,9 @@ func (w *WorkerSet) Print() {
 	end := false
 	for !end {
 		select {
+		case <-ctx.Done():
+			w.print(true)
+			return
 		case <-time.After(100 * time.Millisecond):
 			w.print(false)
 		case end = <-done:

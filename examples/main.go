@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
@@ -23,5 +24,8 @@ func main() {
 		}(w, i)
 	}
 
-	ws.Print()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ws.Print(ctx)
 }
