@@ -16,14 +16,14 @@ func main() {
 
 	for i := 0; i < 10; i++ {
 		w := ws.Add(fmt.Sprintf("Task #%d", i))
-		go func(w *ms.Worker, i int) {
+		go func(w *ms.Worker) {
 			time.Sleep(time.Millisecond * time.Duration(rand.Intn(8000)))
 			if rand.Intn(5) == 1 {
 				w.Fail()
 			} else {
 				w.Done()
 			}
-		}(w, i)
+		}(w)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
