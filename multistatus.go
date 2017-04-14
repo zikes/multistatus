@@ -3,11 +3,13 @@ package multistatus
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
 	spin "github.com/tj/go-spin"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type WorkerState int
@@ -62,39 +64,52 @@ func (w *WorkerSet) Print(ctx context.Context) {
 		done <- true
 	}()
 
-	end := false
-	for !end {
-		select {
-		case <-ctx.Done():
-			w.print(true)
-			return
-		case <-time.After(100 * time.Millisecond):
-			w.print(false)
-		case end = <-done:
-			w.print(true)
+	if terminal.IsTerminal(int(os.Stdout.Fd())) {
+		end := false
+		for !end {
+			select {
+			case <-ctx.Done():
+				w.print(true)
+				return
+			case <-time.After(100 * time.Millisecond):
+				w.print(false)
+			case end = <-done:
+				w.print(true)
+			}
 		}
+	} else {
+		<-done
+		w.print(true)
 	}
 }
 
 func (w *WorkerSet) print(end bool) {
-	// wipe section
-	fmt.Print(
-		// Ensure the output area is at least N lines long
-		strings.Repeat("\n", len(w.Workers)),
+	failed := "✗"
+	completed := "✔"
+	inProgress := "-"
 
-		// Move cursor up N lines
-		strings.Repeat("\033[A", len(w.Workers)),
+	isTerm := terminal.IsTerminal(int(os.Stdout.Fd()))
 
-		// Move the cursor down N lines, erasing each line
-		strings.Repeat("\033[B\033[2K", len(w.Workers)),
+	if isTerm {
+		// wipe section
+		fmt.Print(
+			// Ensure the output area is at least N lines long
+			strings.Repeat("\n", len(w.Workers)),
 
-		// Move cursor up N lines
-		strings.Repeat("\033[A", len(w.Workers)),
-	)
+			// Move cursor up N lines
+			strings.Repeat("\033[A", len(w.Workers)),
 
-	failed := "\033[0;31m✗\033[0m"
-	completed := "\033[0;32m✔\033[0m"
-	inProgress := w.spinner.Next()
+			// Move the cursor down N lines, erasing each line
+			strings.Repeat("\033[B\033[2K", len(w.Workers)),
+
+			// Move cursor up N lines
+			strings.Repeat("\033[A", len(w.Workers)),
+		)
+		failed = "\033[0;31m✗\033[0m"
+		completed = "\033[0;32m✔\033[0m"
+		inProgress = w.spinner.Next()
+	}
+
 	for _, v := range w.Workers {
 		p := inProgress
 		if v.State == Completed {
@@ -104,12 +119,14 @@ func (w *WorkerSet) print(end bool) {
 		}
 		fmt.Printf("  %s %s\n", p, v.Name)
 	}
-	// Hide the cursor
-	fmt.Print("\033[?25l")
-	if end {
-		// Show the cursor
-		fmt.Print("\033[?25h")
-	} else {
-		fmt.Printf("%s", strings.Repeat("\033[A", len(w.Workers)))
+	if isTerm {
+		// Hide the cursor
+		fmt.Print("\033[?25l")
+		if end {
+			// Show the cursor
+			fmt.Print("\033[?25h")
+		} else {
+			fmt.Printf("%s", strings.Repeat("\033[A", len(w.Workers)))
+		}
 	}
 }
