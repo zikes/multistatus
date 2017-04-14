@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"time"
 
-	ms "git.zikes.me/multistatus"
+	ms "github.com/zikes/multistatus"
 )
 
 func main() {
