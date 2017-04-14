@@ -2,6 +2,8 @@
 
 Use the terminal to show the status of multiple concurrent processes in Go.
 
+![](./multistatus.gif)
+
 ## Installation
 
 ```sh
