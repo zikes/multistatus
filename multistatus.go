@@ -100,8 +100,11 @@ func (w *WorkerSet) print(end bool) {
 		}
 		fmt.Printf("  %s %s\n", p, v.Name)
 	}
+	// Hide the cursor
+	fmt.Print("\033[?25l")
 	if end {
-		fmt.Print("\n")
+		// Show the cursor
+		fmt.Print("\033[?25h")
 	} else {
 		fmt.Printf("%s", strings.Repeat("\033[A", len(w.Workers)))
 	}
